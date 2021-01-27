@@ -6,7 +6,6 @@
 	<style>
 		body {
 			font-family: sans-serif;
-			background: #ccc;
 		}
 		.container {
 			width: 80%;
@@ -21,85 +20,289 @@
 	<script src="dist/frappe-gantt.js"></script>
 </head>
 <body>
-	<div class="container">
-		<h2>Interactive Gantt Chart entirely made in SVG!</h2>
-		<div class="gantt-target"></div>
+    <div style="width: 100%;">
+        Time Line
+        <div id="gantttimeline" style="width: 100%;">
+    </div>
+    <div class="mx-auto mt-3 btn-group" role="group">
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode2(this)">Quarter Day</button>
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode2(this)">Half Day</button>
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode2(this)">Day</button>
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode2(this)" >Week</button>
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode2(this)">Month</button>
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode2(this)">Year</button>
 	</div>
-	<script>
-		var tasks = [
-			{
-				start: '2018-10-01',
-				end: '2018-10-08',
-				name: 'Redesign website',
-				id: "Task 0",
-				progress: 20
-			},
-			{
-				start: '2018-10-03',
-				end: '2018-10-06',
-				name: 'Write new content',
-				id: "Task 1",
-				progress: 5,
-				dependencies: 'Task 0'
-			},
-			{
-				start: '2018-10-04',
-				end: '2018-10-08',
-				name: 'Apply new styles',
-				id: "Task 2",
-				progress: 10,
-				dependencies: 'Task 1'
-			},
-			{
-				start: '2018-10-08',
-				end: '2018-10-09',
-				name: 'Review',
-				id: "Task 3",
-				progress: 5,
-				dependencies: 'Task 2'
-			},
-			{
-				start: '2018-10-08',
-				end: '2018-10-10',
-				name: 'Deploy',
-				id: "Task 4",
-				progress: 0,
-				dependencies: 'Task 2'
-			},
-			{
-				start: '2018-10-11',
-				end: '2018-10-11',
-				name: 'Go Live!',
-				id: "Task 5",
-				progress: 0,
-				dependencies: 'Task 4',
-				custom_class: 'bar-milestone'
-			},
-			{
-				start: '2014-01-05',
-				end: '2019-10-12',
-				name: 'Long term task',
-				id: "Task 6",
-				progress: 0
-			}
-		]
-		var gantt_chart = new Gantt(".gantt-target", tasks, {
-			on_click: function (task) {
-				console.log(task);
-			},
-			on_date_change: function(task, start, end) {
-				console.log(task, start, end);
-			},
-			on_progress_change: function(task, progress) {
-				console.log(task, progress);
-			},
-			on_view_change: function(mode) {
-				console.log(mode);
-			},
-			view_mode: 'Month',
-			language: 'en'
-		});
-		console.log(gantt_chart);
-	</script>
+    <br />
+    <div style="width: 100%;">
+        Overlap Checker
+        <div id="gantt" style="width: 100%;">
+    </div>
+    <div class="mx-auto mt-3 btn-group" role="group">
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode(this)">Quarter Day</button>
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode(this)">Half Day</button>
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode(this)">Day</button>
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode(this)" >Week</button>
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode(this)">Month</button>
+	  <button type="button" class="btn btn-sm btn-light" onclick="change_view_mode(this)">Year</button>
+	</div>
+    <script type="text/javascript">
+    //colours
+    //https://observablehq.com/@d3/color-schemes?collection=@d3/d3-scale-chromatic
+    /*
+    var warmPalette = ["#aff05b","#b0ef59","#b1ee58","#b1ed56","#b2ec55","#b3eb53","#b4ea52","#b5ea51","#b6e94f","#b6e84e","#b7e74d","#b8e64b","#b9e54a","#bae449","#bbe348","#bce247","#bde146","#bee044","#bfdf43","#c0dd42","#c1dc41","#c2db40","#c3da3f","#c4d93e","#c5d83d","#c6d73c","#c7d63c","#c8d53b","#c9d33a","#cad239","#cbd138","#ccd038","#cdcf37","#cece36","#cfcc36","#d1cb35","#d2ca34","#d3c934","#d4c833","#d5c633","#d6c532","#d7c432","#d8c331","#d9c131","#dac030","#dbbf30","#ddbe30","#debc30","#dfbb2f","#e0ba2f","#e1b92f","#e2b72f","#e3b62e","#e4b52e","#e5b32e","#e6b22e","#e7b12e","#e8b02e","#e9ae2e","#eaad2e","#ebac2e","#ecaa2e","#eda92e","#eea82f","#efa62f","#f0a52f","#f1a42f","#f2a32f","#f3a130","#f4a030","#f59f30","#f69d31","#f79c31","#f89b32","#f99a32","#f99832","#fa9733","#fb9633","#fc9534","#fd9334","#fd9235","#fe9136","#ff8f36","#ff8e37","#ff8d37","#ff8c38","#ff8a39","#ff893a","#ff883a","#ff873b","#ff863c","#ff843d","#ff833d","#ff823e","#ff813f","#ff8040","#ff7e41","#ff7d42","#ff7c43","#ff7b44","#ff7a45","#ff7946","#ff7847","#ff7648","#ff7549","#ff744a","#ff734b","#ff724c","#ff714d","#ff704e","#ff6f4f","#ff6e50","#ff6d51","#ff6c52","#ff6b53","#ff6a54","#ff6956","#ff6857","#ff6758","#ff6659","#ff655a","#ff645b","#ff635d","#ff625e","#ff615f","#ff6060","#ff5f61","#ff5e63","#ff5d64","#ff5d65","#ff5c66","#ff5b68","#ff5a69","#ff596a","#ff586b","#ff586d","#ff576e","#ff566f","#ff5570","#ff5572","#ff5473","#ff5374","#ff5275","#ff5276","#ff5178","#ff5079","#ff507a","#ff4f7b","#ff4e7d","#ff4e7e","#ff4d7f","#ff4d80","#ff4c81","#fe4b83","#fe4b84","#fd4a85","#fc4a86","#fb4987","#fa4988","#f9488a","#f8488b","#f7478c","#f6478d","#f5468e","#f4468f","#f34590","#f24591","#f14592","#f04493","#ef4494","#ee4395","#ed4396","#eb4397","#ea4298","#e94299","#e8429a","#e7419b","#e5419c","#e4419d","#e3409e","#e2409f","#e040a0","#df40a0","#de3fa1","#dc3fa2","#db3fa3","#da3fa4","#d83fa4","#d73ea5","#d53ea6","#d43ea7","#d33ea7","#d13ea8","#d03ea9","#ce3da9","#cd3daa","#cb3daa","#ca3dab","#c83dac","#c73dac","#c53dad","#c43dad","#c23dae","#c13dae","#bf3caf","#be3caf","#bc3caf","#ba3cb0","#b93cb0","#b73cb0","#b63cb1","#b43cb1","#b23cb1","#b13cb2","#af3cb2","#ae3cb2","#ac3cb2","#aa3cb2","#a93cb3","#a73cb3","#a63cb3","#a43db3","#a23db3","#a13db3","#9f3db3","#9d3db3","#9c3db3","#9a3db3","#983db3","#973db3","#953db3","#943db3","#923db3","#903db2","#8f3db2","#8d3eb2","#8b3eb2","#8a3eb2","#883eb1","#873eb1","#853eb1","#833eb0","#823eb0","#803eb0","#7f3faf","#7d3faf","#7c3faf","#7a3fae","#783fae","#773fad","#753fad","#743fac","#723fac","#7140ab","#6f40aa","#6e40aa"]
+    
+    var maxColorRange = 20
+    var getColor = function(v) {
+        v = Math.min(maxColorRange,Math.max(0,v)) / maxColorRange; //clamp between [0,1]
+        return warmPalette[Math.floor(v * 255)] // 256 colors
+    }
+    
+    var cssString = ''
+    for (var i =0; i <= maxColorRange; i++){
+        cssString += `
+.gantt .bar-wrapper.colorscale-${i} .bar {
+  fill: ${getColor(i)};
+}
+`
+    }
+    console.log(cssString);
+    */
+    // now 1611064393336 
+    var maxTime = new Date().getTime()
+    var tasks = [];
+    var genStart = maxTime - 500000000000;
+    var periodM = 500000000;
+    var periodS = 500000000;
+    var listName = ['A','B','C','D'];
+    
+    var colorClassDict = {
+        'A': 'color-teagreen',
+        'B': 'color-banana',
+        'C': 'color-freshair',
+        'D': 'color-orange'
+    }
+    var genTask = function(start, id, row) {
+        var s = start + Math.random() * periodS;//(maxTime - start)
+        var e = s + Math.random() * periodM;//(maxTime - s)
+        var n = listName[(Math.floor(Math.random() * 4))];
+        var c = colorClassDict[n];
+        tasks.push({
+            id: id,
+            custom_index: row,
+            custom_class: c,
+            name: n,
+            start: new Date(s).toISOString().substring(0,16).replace("T"," "),
+            end: new Date(e).toISOString().substring(0,16).replace("T"," ")
+        })
+        return e;
+    }
+    
+    var r = genStart;
+    for (var i = 0; i < 100; i++){
+        r = genTask(r, i, 0)
+        if (r > 1611060000000) break;
+    }
+    r = genStart;
+    for (var i = 0; i < 100; i++){
+        r = genTask(r, i, 1)
+        if (r > 1611060000000) break;
+    }
+    r = genStart;
+    for (var i = 0; i < 100; i++){
+        r = genTask(r, i, 2)
+        if (r > 1611060000000) break;
+    }
+    r = genStart;
+    for (var i = 0; i < 100; i++){
+        r = genTask(r, i, 3)
+        if (r > 1611060000000) break;
+    }
+    r = genStart;
+    for (var i = 0; i < 100; i++){
+        r = genTask(r, i, 4)
+        if (r > 1611060000000) break;
+    }
+    r = genStart;
+    for (var i = 0; i < 100; i++){
+        r = genTask(r, i, 5)
+        if (r > 1611060000000) break;
+    }
+    
+       
+    var gantt = new Gantt("#gantt", tasks, {
+        header_height: 50,
+        column_width: 30,
+        step: 24,
+        view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month', 'Year'],
+        row_labels: ['T1','T2','T3','T4','T5','T6'],
+        bar_height: 20,
+        bar_corner_radius: 3,
+        arrow_curve: 5,
+        padding: 18,
+        view_mode: 'Month',   
+        date_format: 'YYYY-MM-DD',
+        custom_popup_html: null,
+/*        custom_popup_html: function(task) {
+          // the task object will contain the updated
+          // dates and progress value
+          const end_date = task._end;
+          return `
+            <div class="details-container">
+              <h5>${task.name}</h5>
+              <p>Expected to finish by ${end_date}</p>
+              <p>${task.progress}% completed!</p>
+            </div>
+          `;
+        },*/
+        /*on_click: function (task) {
+            console.log(task);
+        },
+        on_date_change: function(task, start, end) {
+            console.log(task, start, end);
+        },
+        on_progress_change: function(task, progress) {
+            console.log(task, progress);
+        },
+        on_view_change: function(mode) {
+            console.log(mode);
+        }*/
+    });
+    var change_view_mode = function(elem){
+        if (gantt.options.view_mode !== elem.innerText){
+            gantt.change_view_mode(elem.innerText);
+        }
+    }
+    
+    
+    var minimumOverlap = 1000 * 60 * 60 // 1 hr
+    
+    /*{
+        id: 'Task 2',
+        custom_index: 0,
+        name: 'Redesign website',
+        start: "2016-12-20 04:20:24",
+        end: "2016-12-20 22:20:24"
+      }
+      */
+    var periods = []
+      
+    var sequence = [];
+    tasks.forEach(function(task) { 
+        sequence.push({
+            'dt':new Date(task.start),
+            'isStart': true,
+            'start':new Date(task.start),
+            'end':new Date(task.end),
+            'id':task.id,
+            'p':task.custom_index
+        });
+        sequence.push({
+            'dt':new Date(task.end),
+            'isStart': false,
+            'start':new Date(task.start),
+            'end':new Date(task.end),
+            'id':task.id,
+            'p':task.custom_index
+        });
+    });
+    sequence.sort(function(a,b){return a.dt - b.dt;});
+    var stack = [];
+    var dateToString = function(dt) { return dt.toISOString().substring(0,19).replace("T", " "); }
+    var periodStart = null;
+    var periodCounter = 1;
+    
+    sequence.forEach(function(e){
+        if (e.isStart){
+            if (stack.length > 1) {
+                var stackSize = stack.length; //num overlapped
+                var periodEnd = e.dt;
+                // console.log('newStart', periodEnd);
+                if (periodStart > eEnd) { console.log('s',periodStart, periodEnd); }
+                periods.push({
+                    id: periodCounter++,
+                    custom_index: 0,
+                    custom_class: 'colorscale-'+stackSize,
+                    name: stackSize,
+                    start: periodStart,
+                    end: periodEnd,
+                    task_ids: stack.map(function(q) { return q.id; })
+                });
+            }
+            stack.push(e); //add to stack;
+            if (stack.length > 1) {
+                periodStart = e.dt;
+            }
+        } else {
+            var i = stack.findIndex(function(a) { a.id === e.id });
+            var stackSize = stack.length; //num overlapped
+            var eStart = e.start;
+            var eEnd = e.end;
+            var eDuration = eEnd - eStart;
+            var overlaps = [];
+            stack.forEach(function(otherEvent){
+                if (otherEvent.id === e.id) return;
+                var duration = 0;
+                var ratio = 0;
+                if (otherEvent.start > eStart) {
+                    duration = eEnd - otherEvent.start;
+                    ratio = duration / eDuration
+                } else {
+                    duration = eDuration; //full overlap
+                    ratio = 1;
+                }
+            })
+            // console.log('newEnd', eEnd, e);
+            var task_ids = stack.map(function(q) { return q.id; })
+            stack.splice(i,1); //pop from stack
+            
+            if (stackSize > 1) { //stack size before pop;
+                if (periodStart > eEnd) { console.log('e',periodStart, eEnd, task_ids); }
+                periods.push({
+                    id: periodCounter++,
+                    custom_index: 0,
+                    custom_class: 'colorscale-'+stackSize,
+                    name: stackSize,
+                    start: periodStart,
+                    end: eEnd,
+                    task_ids: task_ids
+                });
+                periodStart = eEnd;
+            }
+        }
+    })
+    
+    
+    //periods
+    
+    var ONE_DAY = 86400000;
+    var g2 = new Gantt("#gantttimeline", periods,{
+        on_click: function (period) {
+            console.debug(period);
+            var id = period.task_ids[0];
+            var task = gantt.get_task(id);
+            var startTime = task._start.getTime();
+            console.debug('target', new Date(startTime - ONE_DAY));
+            left_pad = ONE_DAY;
+            switch(gantt.options.view_mode){
+                case 'WEEK':
+                    left_pad = ONE_DAY * 7;
+                case 'MONTH':
+                    left_pad = ONE_DAY * 30;
+                case 'YEAR':
+                    left_pad = ONE_DAY * 365;
+            }
+            gantt.set_scroll_to_time(startTime - left_pad);
+            // g2.get_bar(id);
+        },
+        row_labels: ['Overlap'],
+        view_mode: 'Month'
+    })
+    var change_view_mode2 = function(elem){
+        if (g2.options.view_mode !== elem.innerText){
+            g2.change_view_mode(elem.innerText);
+        }
+    }
+    console.log(gantt, g2);
+    </script>
 </body>
 </html>

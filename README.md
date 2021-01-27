@@ -33,11 +33,12 @@ var tasks = [
   {
     id: 'Task 1',
     name: 'Redesign website',
+    custom_index: 0,
+    custom_class: 'color-teagreen',
     start: '2016-12-28',
     end: '2016-12-31',
     progress: 20,
-    dependencies: 'Task 2, Task 3',
-    custom_class: 'bar-milestone' // optional
+    dependencies: 'Task 2, Task 3'
   },
   ...
 ]
@@ -51,6 +52,7 @@ var gantt = new Gantt("#gantt", tasks, {
     column_width: 30,
     step: 24,
     view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'],
+    row_labels: ['first row name'],
     bar_height: 20,
     bar_corner_radius: 3,
     arrow_curve: 5,
@@ -61,14 +63,40 @@ var gantt = new Gantt("#gantt", tasks, {
 });
 ```
 
-If you want to contribute:
+### changelog (Author: sminghan)
+```
+Tasks properties
+-   custom_index: 0
+      forces specific row (starts from 0)
+-   custom_class: 'color-teagreen'
+      sets css class on parent element 
+      .gantt .bar-wrapper.color-teagreen .bar {
+        fill: #C3ECB2
+      }
 
-1. Clone this repo.
-2. `cd` into project directory
-3. `yarn`
-4. `yarn run dev`
+Gantt properties
+-   row_labels: ['T1','T2','T3','T4','T5','T6']
+    adds labels to start of row, moves with scrolling
+    index follows same as custom_index
+    
+Gantt functions
+-   set_scroll_to_time: function(datetime in ms)
+    scrolls LEFT side of gantt container to the specified time
+    
+Gantt fixes/mods
+-   header label spacing was wrong when view_mode set to MONTH
+    caused by grid ticks spacing being based on number of days per month
+    fix was to include similar spacing for header label spacing calculations.
+        its only similar, deviation goes to 0 every 4 years.
+-   popup blocks mouse click even when hidden
+    fix changes css class to ignore mouse events
+-   popup causes scrollbar to stay wide when shrinking timeline
+    fix to reset popup x position when change_view_mode is called
+-   disabled all progress bar slider / mouse interactions for dragging progress
+    removed render function
+    removed mouse event listeners
+```
 
 License: MIT
-
 ------------------
-Project maintained by [frappe](https://github.com/frappe)
+This is not a maintained fork/dist. Original project by [frappe](https://github.com/frappe)

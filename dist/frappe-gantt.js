@@ -292,6 +292,12 @@ var date_utils = {
             date.getMilliseconds()
         ];
     },
+    
+    get_days_year_to_month(date) {
+        const no_of_days = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+        const month = date.getMonth();
+        return no_of_days[month];
+    },
 
     get_days_in_month(date) {
         const no_of_days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -528,9 +534,9 @@ class Bar {
 
     draw() {
         this.draw_bar();
-        this.draw_progress_bar();
+        //this.draw_progress_bar();
         this.draw_label();
-        this.draw_resize_handles();
+        // this.draw_resize_handles();
     }
 
     draw_bar() {
@@ -635,6 +641,29 @@ class Bar {
     }
 
     setup_click_event() {
+        /*$.on(this.group, 'focus ' + this.gantt.options.popup_trigger, e => {
+            if (this.action_completed) {
+                // just finished a move action, wait for a few seconds
+                return;
+            }
+
+            this.show_popup();
+            this.gantt.unselect_all();
+            this.group.classList.add('active');
+        });*/
+
+        $.on(this.group, 'click', e => {
+            if (this.action_completed) {
+                // just finished a move action, wait for a few seconds
+                return;
+            }
+
+            this.show_popup();
+            this.gantt.unselect_all();
+            this.group.classList.add('active');
+            this.gantt.trigger_event('click', [this.task]);
+        });
+        /*
         $.on(this.group, 'focus ' + this.gantt.options.popup_trigger, e => {
             if (this.action_completed) {
                 // just finished a move action, wait for a few seconds
@@ -653,16 +682,16 @@ class Bar {
             }
 
             this.gantt.trigger_event('click', [this.task]);
-        });
+        });*/
     }
 
     show_popup() {
         if (this.gantt.bar_being_dragged) return;
 
-        const start_date = date_utils.format(this.task._start, 'MMM D', this.gantt.options.language);
+        const start_date = date_utils.format(this.task._start, 'D MM YYYY', this.gantt.options.language);
         const end_date = date_utils.format(
             date_utils.add(this.task._end, -1, 'second'),
-            'MMM D',
+            'D MM YYYY',
             this.gantt.options.language
         );
         const subtitle = start_date + ' - ' + end_date;
@@ -1021,11 +1050,17 @@ class Popup {
         }
 
         // show
-        this.parent.style.opacity = 1;
+        this.parent.classList.add('shown')
+        // this.parent.style.opacity = 1;
     }
 
     hide() {
-        this.parent.style.opacity = 0;
+        this.parent.classList.remove('shown')
+        // this.parent.style.opacity = 0;
+    }
+    
+    resetX() {
+        this.parent.style.left = '0px';
     }
 }
 
@@ -1101,6 +1136,7 @@ class Gantt {
             column_width: 30,
             step: 24,
             view_modes: [...Object.values(VIEW_MODE)],
+            row_labels: [],
             bar_height: 20,
             bar_corner_radius: 3,
             arrow_curve: 5,
@@ -1128,6 +1164,9 @@ class Gantt {
 
             // cache index
             task._index = i;
+            if (typeof task.custom_index === 'number') {
+                task._index = task.custom_index;
+            }
 
             // invalid dates
             if (!task.start && !task.end) {
@@ -1193,8 +1232,31 @@ class Gantt {
         this.setup_tasks(tasks);
         this.change_view_mode();
     }
+    
+    get_scroll_time() {
+        const parent_element = this.$svg.parentElement;
+        if (!parent_element) return;
+        
+        var sl = parent_element.scrollLeft;
+        var sw = parent_element.scrollWidth;
+        var cw = parent_element.clientWidth;
+        var tw = this.gantt_end - this.gantt_start;
+        var ts = this.gantt_start.getTime();
+        
+        var scrollRatio = sl /(sw-cw);
+        var viewTimeWindow = tw * cw / sw
+        var target = ts + (tw - viewTimeWindow) * scrollRatio;
+        console.log('left side should be', new Date(target));
+        return target;
+    }
 
     change_view_mode(mode = this.options.view_mode) {
+        if (this.popup) {
+            this.popup.resetX();
+        }
+        if (this.gantt_start){
+            this.temp_scroll_time = this.get_scroll_time();
+        }
         this.update_view_scale(mode);
         this.setup_dates();
         this.render();
@@ -1229,6 +1291,25 @@ class Gantt {
     setup_dates() {
         this.setup_gantt_dates();
         this.setup_date_values();
+        this.setup_num_rows();
+    }
+    
+    setup_num_rows() {
+        let num_row = 0;
+        this.gantt_num_row = 0;
+        for (let task of this.tasks) {
+            if (typeof(task.custom_index === 'number')){
+                if (task.custom_index + 1 > num_row) {
+                    num_row = task.custom_index + 1
+                }
+            }
+        }
+        this.gantt_num_row = num_row;
+        if (this.options.row_labels && (this.options.row_labels.length > 0)){
+            if (this.options.row_labels.length > this.gantt_num_row) {
+                this.gantt_num_row = this.options.row_labels.length
+            }
+        }
     }
 
     setup_gantt_dates() {
@@ -1289,7 +1370,8 @@ class Gantt {
 
     bind_events() {
         this.bind_grid_click();
-        this.bind_bar_events();
+        // this.bind_bar_events();
+        this.set_scroll_listener();
     }
 
     render() {
@@ -1301,12 +1383,17 @@ class Gantt {
         this.make_arrows();
         this.map_arrows_on_bars();
         this.set_width();
-        this.set_scroll_position();
+        if (this.temp_scroll_time) {
+            this.set_scroll_to_time(this.temp_scroll_time);
+            this.temp_scroll_time = 0;
+        } else {
+            this.set_scroll_position();
+        }
     }
 
     setup_layers() {
         this.layers = {};
-        const layers = ['grid', 'date', 'arrow', 'progress', 'bar', 'details'];
+        const layers = ['grid', 'date', 'arrow', 'progress', 'bar', 'row_labels', 'details'];
         // make group layers
         for (let layer of layers) {
             this.layers[layer] = createSVG('g', {
@@ -1330,7 +1417,7 @@ class Gantt {
             this.options.header_height +
             this.options.padding +
             (this.options.bar_height + this.options.padding) *
-                this.tasks.length;
+                (this.gantt_num_row ? this.gantt_num_row : this.tasks.length);
 
         createSVG('rect', {
             x: 0,
@@ -1342,40 +1429,87 @@ class Gantt {
         });
 
         $.attr(this.$svg, {
-            height: grid_height + this.options.padding + 100,
+            height: grid_height + this.options.padding + 15, // + 100, may need to increase this unless the popup somehow can be outside the scroll container
             width: '100%'
         });
     }
 
     make_grid_rows() {
+        this.row_label_elements = [];
         const rows_layer = createSVG('g', { append_to: this.layers.grid });
         const lines_layer = createSVG('g', { append_to: this.layers.grid });
+        const row_labels_layer = this.layers.row_labels;
+        //createSVG('g', { append_to: this.layers.grid });
 
         const row_width = this.dates.length * this.options.column_width;
         const row_height = this.options.bar_height + this.options.padding;
 
         let row_y = this.options.header_height + this.options.padding / 2;
 
-        for (let task of this.tasks) {
-            createSVG('rect', {
-                x: 0,
-                y: row_y,
-                width: row_width,
-                height: row_height,
-                class: 'grid-row',
-                append_to: rows_layer
-            });
+        if (this.gantt_num_row > 0) {
+            for (let t = 0; t<this.gantt_num_row; t++){
+                createSVG('rect', {
+                    x: 0,
+                    y: row_y,
+                    width: row_width,
+                    height: row_height,
+                    class: 'grid-row',
+                    append_to: rows_layer
+                });
 
-            createSVG('line', {
-                x1: 0,
-                y1: row_y + row_height,
-                x2: row_width,
-                y2: row_y + row_height,
-                class: 'row-line',
-                append_to: lines_layer
-            });
+                createSVG('line', {
+                    x1: 0,
+                    y1: row_y + row_height,
+                    x2: row_width,
+                    y2: row_y + row_height,
+                    class: 'row-line',
+                    append_to: lines_layer
+                });
+                
+                let label = this.options.row_labels[t]
+                if (label) {
+                    let label_element = createSVG('text', {
+                        x: 5,
+                        y: row_y + row_height / 2,
+                        innerHTML: label,
+                        class: 'row-label',
+                        append_to: row_labels_layer
+                    });
+                    this.row_label_elements.push(label_element);
+                }
+                row_y += this.options.bar_height + this.options.padding;
+            }
+        } else 
+        {
+            for (let task of this.tasks) {
+                createSVG('rect', {
+                    x: 0,
+                    y: row_y,
+                    width: row_width,
+                    height: row_height,
+                    class: 'grid-row',
+                    append_to: rows_layer
+                });
 
-            row_y += this.options.bar_height + this.options.padding;
+                createSVG('line', {
+                    x1: 0,
+                    y1: row_y + row_height,
+                    x2: row_width,
+                    y2: row_y + row_height,
+                    class: 'row-line',
+                    append_to: lines_layer
+                });
+                
+                createSVG('text', {
+                    x: 5,
+                    y: row_y + row_height / 2,
+                    innerHTML: "TITLE",
+                    class: 'bar-label',
+                    append_to: rows_layer
+                });
+
+                row_y += this.options.bar_height + this.options.padding;
+            }
         }
     }
 
@@ -1397,7 +1531,7 @@ class Gantt {
         let tick_y = this.options.header_height + this.options.padding / 2;
         let tick_height =
             (this.options.bar_height + this.options.padding) *
-            this.tasks.length;
+            (this.gantt_num_row ? this.gantt_num_row : this.tasks.length);
 
         for (let date of this.dates) {
             let tick_class = 'tick';
@@ -1447,7 +1581,7 @@ class Gantt {
             const width = this.options.column_width;
             const height =
                 (this.options.bar_height + this.options.padding) *
-                    this.tasks.length +
+                    (this.gantt_num_row ? this.gantt_num_row : this.tasks.length) +
                 this.options.header_height +
                 this.options.padding / 2;
 
@@ -1462,7 +1596,10 @@ class Gantt {
         }
     }
 
-    make_dates() {
+    make_dates() { // modified to try and reduce forced reflow
+        var layers_grid_bbox_width = this.layers.grid.getBBox().width;
+        var listUpperText = [];
+        var listToRemove = [];
         for (let date of this.get_dates_to_draw()) {
             createSVG('text', {
                 x: date.lower_x,
@@ -1480,15 +1617,27 @@ class Gantt {
                     class: 'upper-text',
                     append_to: this.layers.date
                 });
-
-                // remove out-of-bound dates
                 if (
-                    $upper_text.getBBox().x2 > this.layers.grid.getBBox().width
+                    $upper_text.getBBox().x2 > layers_grid_bbox_width
                 ) {
                     $upper_text.remove();
                 }
+                //listUpperText.push($upper_text);
             }
         }
+        
+        listUpperText.forEach(function($upper_text) {
+            if (
+                $upper_text.getBBox().x2 > layers_grid_bbox_width
+            ) {
+                listToRemove.push($upper_text);
+            }
+        });
+        listUpperText = [];
+        // remove out-of-bound dates
+        listToRemove.forEach(function($upper_text) {
+            $upper_text.remove();
+        });
     }
 
     get_dates_to_draw() {
@@ -1548,14 +1697,23 @@ class Gantt {
                 date.getFullYear() !== last_date.getFullYear()
                     ? date_utils.format(date, 'YYYY', this.options.language)
                     : '',
-            Year_upper:
-                date.getFullYear() !== last_date.getFullYear()
+            Year_upper: ''
+                /*date.getFullYear() !== last_date.getFullYear()
                     ? date_utils.format(date, 'YYYY', this.options.language)
-                    : ''
+                    : ''*/
         };
+//TODO
+        let base_pos_x = i * this.options.column_width;
+        if (this.options.view_mode === VIEW_MODE.MONTH) { //because they did some exact compute
+            base_pos_x = ((i - date.getMonth()) * 365.25 * this.options.column_width / 360) ;
+            base_pos_x +=
+                date_utils.get_days_year_to_month(date) *
+                this.options.column_width /
+                30;
+        }
 
         const base_pos = {
-            x: i * this.options.column_width,
+            x: base_pos_x,
             lower_y: this.options.header_height,
             upper_y: this.options.header_height - 25
         };
@@ -1652,6 +1810,63 @@ class Gantt {
             this.options.column_width;
 
         parent_element.scrollLeft = scroll_pos;
+    }
+    
+    set_scroll_to_time(target) {
+        const parent_element = this.$svg.parentElement;
+        if (!parent_element) return;
+        
+        var sl = parent_element.scrollLeft;
+        var sw = parent_element.scrollWidth;
+        var cw = parent_element.clientWidth;
+        var tw = this.gantt_end - this.gantt_start;
+        var ts = this.gantt_start.getTime();
+        
+        var sa = sw - cw;
+        if (sa <= 0) return; // no scroll bar
+        var scrollRatio = sl / (sw - cw + 0.0001);
+        var viewTimeWindow = tw * cw / sw
+        
+        const newRatio = (target - ts) / (tw - viewTimeWindow)
+                
+        parent_element.scrollLeft = newRatio * (sw - cw + 0.0001);
+    }
+    
+    set_scroll_to_task(task_id) {
+        const parent_element = this.$svg.parentElement;
+        if (!parent_element) return;
+        var task = this.get_task(task_id)
+        if (!task) return;
+        
+        const hours_before_task = date_utils.diff(
+            new Date(this.task.start),
+            this.gantt_start,
+            'hour'
+        );
+        const scroll_pos =
+            hours_before_task /
+                this.options.step *
+                this.options.column_width -
+            this.options.column_width;
+        parent_element.scrollLeft = scroll_pos;
+    }
+    
+    set_scroll_listener() {
+        const parent_element = this.$container;
+        const moveRowLabels = this.update_row_labels.bind(this);
+        if (!parent_element) return;
+        parent_element.addEventListener('scroll', function(evt) {
+            moveRowLabels(this.scrollLeft);
+          // label.node().setAttribute('y', 10 + this.scrollLeft);
+        }, false)
+    }
+    
+    update_row_labels(x) {
+        if (this.row_label_elements && this.row_label_elements.length) {
+            this.row_label_elements.forEach(function(label_element){
+                label_element.setAttribute('x', x + 5);
+            })
+        }
     }
 
     bind_grid_click() {

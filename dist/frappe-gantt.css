@@ -16,10 +16,11 @@
   stroke: #ebeff2; }
 
 .gantt .tick {
-  stroke: #e0e0e0;
-  stroke-width: 0.2; }
+  stroke: #c0c0c0;
+  stroke-width: 0.6; }
   .gantt .tick.thick {
-    stroke-width: 0.4; }
+    stroke: #b0b0b0;
+    stroke-width: 1.2; }
 
 .gantt .today-highlight {
   fill: #fcf8e3;
@@ -31,8 +32,8 @@
   stroke-width: 1.4; }
 
 .gantt .bar {
-  fill: #b8c2cc;
-  stroke: #8D99A6;
+  fill: #a3a3ff;
+  stroke: #7777ff;
   stroke-width: 0;
   transition: stroke-width .3s ease;
   user-select: none; }
@@ -52,9 +53,10 @@
   fill: #fff;
   dominant-baseline: central;
   text-anchor: middle;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: lighter; }
   .gantt .bar-label.big {
+    display:none;
     fill: #555;
     text-anchor: start; }
 
@@ -69,19 +71,19 @@
   cursor: pointer;
   outline: none; }
   .gantt .bar-wrapper:hover .bar {
-    fill: #a9b5c1; }
+    fill: #7777ff; }
   .gantt .bar-wrapper:hover .bar-progress {
     fill: #8a8aff; }
   .gantt .bar-wrapper:hover .handle {
     visibility: visible;
     opacity: 1; }
   .gantt .bar-wrapper.active .bar {
-    fill: #a9b5c1; }
+    fill: #9999ff; }
   .gantt .bar-wrapper.active .bar-progress {
     fill: #8a8aff; }
 
 .gantt .lower-text, .gantt .upper-text {
-  font-size: 12px;
+  font-size: 14px;
   text-anchor: middle; }
 
 .gantt .upper-text {
@@ -104,7 +106,17 @@
     background: rgba(0, 0, 0, 0.8);
     padding: 0;
     color: #959da5;
+    -webkit-transition: opacity 0.2s ease-in-out 0s;
+    -moz-transition: opacity 0.2s ease-in-out 0s;
+    -ms-transition: opacity 0.2s ease-in-out 0s;
+    transition: opacity 0.2s ease-in-out 0s;
+    opacity: 0;
+    visibility: hidden;
     border-radius: 3px; }
+    .gantt-container .popup-wrapper.shown {
+      opacity: 1;
+      visibility: visible;
+    }
     .gantt-container .popup-wrapper .title {
       border-bottom: 3px solid #a3a3ff;
       padding: 10px; }
@@ -117,3 +129,103 @@
       margin: 0 0 0 -5px;
       border: 5px solid transparent;
       border-top-color: rgba(0, 0, 0, 0.8); }
+
+.gantt .bar-wrapper.color-teagreen .bar {
+  fill: #C3ECB2
+}
+
+.gantt .bar-wrapper.color-banana .bar {
+  fill: #CFC28F;
+}
+
+.gantt .bar-wrapper.color-freshair .bar {
+  fill: #AADAFF;
+}
+
+.gantt .bar-wrapper.color-orange .bar {
+  fill: #F6CF65;
+}
+
+.gantt .bar-wrapper.colorscale-0 .bar {
+  fill: #aff05b;
+}
+
+.gantt .bar-wrapper.colorscale-1 .bar {
+  fill: #b9e54a;
+}
+
+.gantt .bar-wrapper.colorscale-2 .bar {
+  fill: #c6d73c;
+}
+
+.gantt .bar-wrapper.colorscale-3 .bar {
+  fill: #d4c833;
+}
+
+.gantt .bar-wrapper.colorscale-4 .bar {
+  fill: #e2b72f;
+}
+
+.gantt .bar-wrapper.colorscale-5 .bar {
+  fill: #eea82f;
+}
+
+.gantt .bar-wrapper.colorscale-6 .bar {
+  fill: #fa9733;
+}
+
+.gantt .bar-wrapper.colorscale-7 .bar {
+  fill: #ff873b;
+}
+
+.gantt .bar-wrapper.colorscale-8 .bar {
+  fill: #ff7847;
+}
+
+.gantt .bar-wrapper.colorscale-9 .bar {
+  fill: #ff6b53;
+}
+
+.gantt .bar-wrapper.colorscale-10 .bar {
+  fill: #ff5e63;
+}
+
+.gantt .bar-wrapper.colorscale-11 .bar {
+  fill: #ff5473;
+}
+
+.gantt .bar-wrapper.colorscale-12 .bar {
+  fill: #fe4b83;
+}
+
+.gantt .bar-wrapper.colorscale-13 .bar {
+  fill: #f34590;
+}
+
+.gantt .bar-wrapper.colorscale-14 .bar {
+  fill: #e4419d;
+}
+
+.gantt .bar-wrapper.colorscale-15 .bar {
+  fill: #d33ea7;
+}
+
+.gantt .bar-wrapper.colorscale-16 .bar {
+  fill: #bf3caf;
+}
+
+.gantt .bar-wrapper.colorscale-17 .bar {
+  fill: #ac3cb2;
+}
+
+.gantt .bar-wrapper.colorscale-18 .bar {
+  fill: #973db3;
+}
+
+.gantt .bar-wrapper.colorscale-19 .bar {
+  fill: #823eb0;
+}
+
+.gantt .bar-wrapper.colorscale-20 .bar {
+  fill: #6e40aa;
+}
